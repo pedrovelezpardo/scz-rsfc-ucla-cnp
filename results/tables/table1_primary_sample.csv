@@ -1,0 +1,28 @@
+Variable,Schizophrenia,Healthy controls,p,Test
+n,31,103,,
+"Age, years",35.0 ± 9.5,30.6 ± 8.3,0.025,Welch t
+"Male sex, n (%)",23 (74.2),53 (51.5),0.042,χ² / Fisher
+"Education, years",12.7 ± 1.4,15.3 ± 1.6,<0.001,Welch t
+"Scanner B (syngo B17), n (%)",16 (51.6),21 (20.4),0.001,χ² / Fisher
+"T1-weighted ghosting artefact, n (%)",12 (38.7),10 (9.7),<0.001,χ² / Fisher
+"Mean framewise displacement, mm",0.145 ± 0.057,0.114 ± 0.045,0.009,Welch t
+"Volumes with FD > 0.2 mm, %",20.7 ± 15.3,12.1 ± 12.4,0.007,Welch t
+Volumes retained after censoring,143.1 ± 10.2,147.1 ± 7.6,0.048,Welch t
+"WAIS-IV Vocabulary, raw score",30.9 ± 9.0,43.7 ± 8.1,<0.001,Welch t
+"WAIS-IV Matrix Reasoning, raw score",15.6 ± 4.9,20.9 ± 3.8,<0.001,Welch t
+"CVLT-II trials 1–5, T score",42.4 ± 9.5,56.1 ± 8.6,<0.001,Welch t
+"Schizoaffective disorder (SCID), n (%)",6 (19.4),—,—,
+BPRS-24 total (n = 30),49.9 ± 15.6,—,—,
+"SAPS, sum of global ratings",6.8 ± 4.3,—,—,
+"SANS, sum of global ratings",9.4 ± 5.1,—,—,
+HAMD-17,9.3 ± 8.3,—,—,
+"Current antipsychotic, n (%)",27 (87.1),—,—,
+"  Second-generation, n (%)",27 (87.1),—,—,
+"  First-generation, n (%)",2 (6.5),—,—,
+"Current antidepressant, n (%)",9 (29.0),—,—,
+"Current mood stabilizer, n (%)",4 (12.9),—,—,
+"Current benzodiazepine, n (%)",6 (19.4),—,—,
+"No medication record, n (%)",4 (12.9),—,—,
+"Any lifetime DSM-IV diagnosis (SCID), n (%)",—,50 (48.5),—,
+"  Substance use disorder, n (%)",—,26 (25.2),—,
+"  Depressive disorder, n (%)",—,29 (28.2),—,

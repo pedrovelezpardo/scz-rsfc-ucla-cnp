@@ -1,0 +1,13 @@
+rank,beta,roi_i_correct,roi_j_correct,roi_i_as_published,roi_j_as_published
+1,0.07041922608983173,LH Limbic TempPole 2,RH Default Temp 1,LH Limbic TempPole 1,RH Default Par 1
+2,0.06511662095322346,RH Vis 5,RH SomMot 1,RH Vis 4,RH Vis 8
+3,0.06409205551880343,LH Limbic TempPole 2,RH Vis 3,LH Limbic TempPole 1,RH Vis 2
+4,0.06401114182825635,LH Vis 4,RH Limbic TempPole 1,LH Vis 3,RH Limbic OFC 1
+5,-0.05922817654528149,LH DorsAttn PrCv 1,LH SalVentAttn Med 3,LH DorsAttn Post 6,LH SalVentAttn Med 2
+6,0.05867389390757155,LH Limbic TempPole 2,RH Vis 1,LH Limbic TempPole 1,LH Default pCunPCC 2
+7,0.05574266356164688,LH Vis 6,RH SomMot 1,LH Vis 5,RH Vis 8
+8,0.055055969406938694,LH Vis 1,RH Vis 7,Background,RH Vis 6
+9,-0.05479098240701502,LH Default PFC 6,RH Default PFCdPFCm 2,LH Default PFC 5,RH Default PFCdPFCm 1
+10,-0.0545557992558758,LH SomMot 2,LH DorsAttn Post 1,LH SomMot 1,LH SomMot 6
+11,0.05385294261181175,RH Vis 4,RH Limbic TempPole 1,RH Vis 3,RH Limbic OFC 1
+12,0.05378757956158777,LH SalVentAttn Med 3,RH Vis 5,LH SalVentAttn Med 2,RH Vis 4
