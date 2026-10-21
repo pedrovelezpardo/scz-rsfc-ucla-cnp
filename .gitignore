@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+# unzipped package (the zip itself is versioned)
+data/roi_package_v2/
+results/cache/
