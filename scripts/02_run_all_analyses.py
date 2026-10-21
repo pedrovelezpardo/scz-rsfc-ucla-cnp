@@ -102,7 +102,7 @@ def main():
     ap.add_argument("--package", default="data/roi_package_v2")
     ap.add_argument("--out", default="results")
     ap.add_argument("--n-repeats", type=int, default=100, help="repetitions of nested CV (primary analysis)")
-    ap.add_argument("--n-repeats-secondary", type=int, default=50)
+    ap.add_argument("--n-repeats-secondary", type=int, default=20, help="repetitions for the sensitivity analyses")
     ap.add_argument("--n-repeats-nonlinear", type=int, default=20)
     ap.add_argument("--n-perm", type=int, default=1000)
     ap.add_argument("--n-boot", type=int, default=1000)
@@ -200,13 +200,13 @@ def main():
         ("p5", "24P only", "sensitivity", "P5_24P", "primary", "LR", CONF4, R2),
         ("p0_desc", "6P + WM + GS + aCompCor (no censoring)", "sensitivity", "P0_described", "primary", "LR", CONF4, R2),
         ("p0_exec", "Pipeline of the first submission (letter only)", "letter", "P0_executed", "primary", "LR", CONF4, R2),
-        ("stringent", "Stringent motion criteria (FD > 0.2 mm)", "sensitivity", "P4_36P_cens02", "stringent", "LR", CONF4, R2),
+        ("stringent", "Stringent motion criteria", "sensitivity", "P4_36P_cens02", "stringent", "LR", CONF4, R2),
         ("inclusive", "Inclusive motion criteria (≥ 2 min of data)", "sensitivity", "P1_36P_cens05", "inclusive", "LR", CONF4, R2),
         ("psm", "Propensity-matched subsample", "sensitivity", "P1_36P_cens05", "psm", "LR", CONF4, R2),
         ("scanner_a", "Scanner A only", "sensitivity", "P1_36P_cens05", "scanner_a", "LR", ["age", "male", "mean_fd"], R2),
-        ("no_artifact", "Excluding T1 artifact / PE deviation", "sensitivity", "P1_36P_cens05", "no_artifact", "LR", CONF4, R2),
+        ("no_artifact", "Excluding T1 artefact or non-standard phase encoding", "sensitivity", "P1_36P_cens05", "no_artifact", "LR", CONF4, R2),
         ("no_schizoaffective", "Excluding schizoaffective disorder", "sensitivity", "P1_36P_cens05", "no_schizoaffective", "LR", CONF4, R2),
-        ("orig_p1", "Age- and sex-matched subsample (50 + 49)", "sensitivity", "P1_36P_cens05", "original", "LR", CONF4, R2),
+        ("orig_p1", "Age- and sex-matched subsample", "sensitivity", "P1_36P_cens05", "original", "LR", CONF4, R2),
         ("orig_p0", "First submission, nested CV (letter only)", "letter", "P0_executed", "original", "LR", [], R2),
         ("rf", "Random forest", "sensitivity", "P1_36P_cens05", "primary", "RF", CONF4, R3),
         ("svm", "Linear SVM", "sensitivity", "P1_36P_cens05", "primary", "SVM", CONF4, R3),
@@ -372,7 +372,16 @@ def main():
     n_ok_sz, n_ok_hc = int(ok.y.sum()), int((1 - ok.y).sum())
     exl = ok[ok["excl_lenient"]]
     prim_c = summary["cohorts"]["primary"]
-    psm_c, org_c, str_c = summary["cohorts"]["psm"], summary["cohorts"]["original"], summary["cohorts"]["stringent"]
+    analysed = resdf.set_index("key")
+
+    def n_analysed(key, cohort):
+        # participants actually analysed (some lack enough volumes after censoring); cohort size if skipped
+        r = analysed.loc[key] if key in analysed.index else None
+        if r is not None and pd.notna(r.get("n_sz")):
+            return f"SZ {int(r['n_sz'])}, HC {int(r['n_hc'])}"
+        c = summary["cohorts"][cohort]
+        return f"SZ {c['n_sz']}, HC {c['n_hc']}"
+
     counts = {
         "all": f"OpenNeuro ds000030 (UCLA CNP)\nn = {n_all}",
         "groups": f"Schizophrenia n = {n_sz_all}\nHealthy controls n = {n_hc_all}",
@@ -383,9 +392,11 @@ def main():
         "excl_deriv": f"No T1-weighted image (not preprocessed)\nSZ n = {n_rest_sz - n_ok_sz}; HC n = {n_rest_hc - n_ok_hc}",
         "excl_motion": f"Excluded: head motion*\nSZ n = {int(exl.y.sum())}; HC n = {int((1 - exl.y).sum())}",
         "final": f"Primary analytic sample\nSZ n = {prim_c['n_sz']}; HC n = {prim_c['n_hc']}",
-        "subsamples": (f"Sensitivity subsamples — propensity-matched: SZ {psm_c['n_sz']}, HC {psm_c['n_hc']};  "
-                       f"age- and sex-matched: SZ {org_c['n_sz']}, HC {org_c['n_hc']};\n"
-                       f"stringent motion criteria: SZ {str_c['n_sz']}, HC {str_c['n_hc']}"),
+        "subsamples": ("Other samples analysed (sensitivity analyses)\n"
+                       f"Inclusive motion criteria: {n_analysed('inclusive', 'inclusive')};   "
+                       f"stringent motion criteria: {n_analysed('stringent', 'stringent')}\n"
+                       f"Propensity-matched: {n_analysed('psm', 'psm')};   "
+                       f"age- and sex-matched, no motion criteria: {n_analysed('orig_p1', 'original')}"),
         "footnote": ("*Mean framewise displacement > 0.5 mm, or < 4 min of data after censoring volumes with "
                      "FD > 0.5 mm."),
     }
