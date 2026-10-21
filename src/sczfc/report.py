@@ -95,7 +95,7 @@ def table1(df: pd.DataFrame) -> pd.DataFrame:
     cat("Male sex, n (%)", "male")
     cont("Education, years", "education_years")
     cat("Scanner B (syngo B17), n (%)", "scanner_b")
-    cat("T1-weighted ghosting artifact, n (%)", "t1_ghost")
+    cat("T1-weighted ghosting artefact, n (%)", "t1_ghost")
     cont("Mean framewise displacement, mm", "mean_fd", 3)
     cont("Volumes with FD > 0.2 mm, %", "pct_fd_gt_0p2", 1)
     cont("Volumes retained after censoring", "n_keep_primary", 1)
@@ -157,9 +157,8 @@ def flow_diagram(counts: dict, out_dir: str, name="figure1_flow"):
             box(sx, yc - 4, sw, 8, counts[key], fc="#fbfbfa", size=6.8)
             ax.plot([mx + mw / 2, sx - 0.6], [yc, yc], color=INK2, lw=0.7)
             arrow(sx - 2.5, yc, sx - 0.4, yc)
-    if "subsamples" in counts:
-        box(mx, 2, 95, 10, counts["subsamples"], fc="#fbfbfa", size=6.6)
-        arrow(mx + mw / 2, levels["final"], mx + mw / 2, 12)
+    if "subsamples" in counts:   # drawn without an arrow: not all of these are subsets of the primary sample
+        box(mx, 1, 95, 12, counts["subsamples"], fc="#fbfbfa", size=6.6)
     if "footnote" in counts:
         ax.text(mx, -2.5, counts["footnote"], fontsize=6.2, color=INK2, va="top")
     save(fig, out_dir, name)
@@ -197,8 +196,10 @@ def performance_figure(y, s_primary, rep_scores, s_conf, null, observed_perm, p_
     ax = fig.add_subplot(gs[0, 1])
     ax.hist(null, bins=30, color="#b7d3f6", edgecolor="white", linewidth=0.5)
     ax.axvline(observed_perm, color=SZ_COLOR, lw=2)
-    ax.text(0.02, 0.97, f"Observed AUC = {observed_perm:.3f}\np = {p_perm:.3f} ({len(null):,} permutations)",
-            transform=ax.transAxes, color=INK, fontsize=7, va="top", ha="left")
+    ax.text(0.02, 0.98, f"Observed AUC = {observed_perm:.3f}\np = {p_perm:.3f} ({len(null):,} permutations)",
+            transform=ax.transAxes, color=INK, fontsize=7, va="top", ha="left", zorder=5,
+            bbox=dict(boxstyle="square,pad=0.25", fc="white", ec="none", alpha=0.9))
+    ax.set_ylim(0, ax.get_ylim()[1] * 1.22)   # headroom for the annotation
     ax.set_xlabel("AUC under permuted labels")
     ax.set_ylabel("Permutations")
     ax.set_title("B", loc="left", weight="bold")
@@ -217,7 +218,7 @@ def performance_figure(y, s_primary, rep_scores, s_conf, null, observed_perm, p_
     ax.set_yticks(yy)
     ax.set_yticklabels(fr["label"], fontsize=6.8)
     ax.set_xlabel("AUC (95% CI)")
-    ax.set_xlim(0.3, 1.0)
+    ax.set_xlim(min(0.3, np.floor(10 * fr["auc_ci_low"].min() - 0.2) / 10), 1.0)
     ax.set_ylim(-0.7, len(fr) - 0.3)
     ax.set_title("C", loc="left", weight="bold")
     save(fig, out_dir, name)
@@ -225,11 +226,14 @@ def performance_figure(y, s_primary, rep_scores, s_conf, null, observed_perm, p_
 
 def network_figure(net_matrix, net_sig, stable_edges: pd.DataFrame, atlas: pd.DataFrame, out_dir,
                    name="figure3_networks"):
+    from matplotlib.cm import ScalarMappable
+    from matplotlib.colors import Normalize
     from nilearn import plotting
 
-    fig = plt.figure(figsize=(175 * MM, 85 * MM))
-    gs = fig.add_gridspec(1, 2, width_ratios=[1, 1.55], wspace=0.30)
-    ax = fig.add_subplot(gs[0])
+    fig = plt.figure(figsize=(175 * MM, 190 * MM))
+    gs = fig.add_gridspec(2, 1, height_ratios=[1.2, 0.85], hspace=0.42)
+    top = gs[0].subgridspec(1, 3, width_ratios=[0.45, 1.5, 0.45])
+    ax = fig.add_subplot(top[1])
     M = np.array(net_matrix, float)
     vmax = np.nanmax(np.abs(M)) or 1
     tri = np.tril(np.ones_like(M, bool))
@@ -241,16 +245,15 @@ def network_figure(net_matrix, net_sig, stable_edges: pd.DataFrame, atlas: pd.Da
                 ax.text(j, i, "*", ha="center", va="center", fontsize=9, color=INK)
     names = [NETWORK_NAMES[n] for n in NETWORKS]
     ax.set_xticks(range(len(NETWORKS)))
-    ax.set_xticklabels(names, rotation=50, ha="right", fontsize=6.6)
+    ax.set_xticklabels(names, rotation=45, ha="right", fontsize=7)
     ax.set_yticks(range(len(NETWORKS)))
-    ax.set_yticklabels(names, fontsize=6.6)
+    ax.set_yticklabels(names, fontsize=7)
     for side in ("left", "bottom"):
         ax.spines[side].set_visible(False)
     ax.tick_params(length=0)
     cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.03)
-    cb.set_label("Mean activation pattern\n(+ higher in SZ score)", fontsize=6.6)
+    cb.set_label("Mean activation pattern (a.u.)\npositive: higher probability of SZ", fontsize=6.8)
     cb.ax.tick_params(labelsize=6.4)
-    ax.set_title("A", loc="left", weight="bold")
 
     ax2 = fig.add_subplot(gs[1])
     coords = atlas[["x_mni", "y_mni", "z_mni"]].to_numpy(float)
@@ -260,10 +263,17 @@ def network_figure(net_matrix, net_sig, stable_edges: pd.DataFrame, atlas: pd.Da
     used = np.unique(np.r_[stable_edges["i"].astype(int), stable_edges["j"].astype(int)])
     node_colors = [INK2 if k in used else "none" for k in range(100)]
     vmax2 = np.abs(A).max() or 1
-    plotting.plot_connectome(A, coords, node_color=node_colors, node_size=[10 if k in used else 0 for k in range(100)],
-                             edge_cmap=DIVERGING, edge_vmin=-vmax2, edge_vmax=vmax2, edge_kwargs={"linewidth": 1.4},
-                             display_mode="lzr", axes=ax2, colorbar=True, annotate=True)
-    ax2.set_title("B", loc="left", weight="bold")
+    plotting.plot_connectome(A, coords, node_color=node_colors, node_size=[12 if k in used else 0 for k in range(100)],
+                             edge_cmap=DIVERGING, edge_vmin=-vmax2, edge_vmax=vmax2, edge_kwargs={"linewidth": 1.5},
+                             display_mode="lzr", axes=ax2, colorbar=False, annotate=True)
+    pos = ax2.get_position()
+    fig.text(0.01, ax.get_position().y1 + 0.01, "A", weight="bold", fontsize=9, va="bottom")
+    fig.text(0.01, pos.y1 + 0.01, "B", weight="bold", fontsize=9, va="bottom")
+    cax = fig.add_axes([pos.x0 + 0.35 * pos.width, pos.y0 - 0.045, 0.30 * pos.width, 0.014])
+    cb2 = fig.colorbar(ScalarMappable(norm=Normalize(-vmax2, vmax2), cmap=DIVERGING), cax=cax,
+                       orientation="horizontal")
+    cb2.set_label("Activation pattern (a.u.)", fontsize=6.8)
+    cb2.ax.tick_params(labelsize=6.4)
     save(fig, out_dir, name)
 
 
